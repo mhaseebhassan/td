@@ -1,3 +1,5 @@
+import os
+import uuid
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -10,11 +12,12 @@ def base_url():
 
 @pytest.fixture(scope="session")
 def test_user():
-    return "testuser_selenium"
+    return f"testuser_{uuid.uuid4().hex[:8]}"
 
 @pytest.fixture(scope="session")
 def test_pass():
     return "seleniumpass123"
+
 
 @pytest.fixture(scope="session")
 def driver():
