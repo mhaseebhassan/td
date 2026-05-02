@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}My Tasks — Todo App{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="header-bar">
+        <h1>My Tasks</h1>
+        <a href="{{ url_for('logout') }}" id="logout-btn" class="btn btn-sm btn-ghost">Logout</a>
+    </div>
+    <p class="subtitle">Hello, <strong>{{ username }}</strong> — what needs to get done?</p>
+    <form method="POST" action="{{ url_for('add_task') }}" class="add-row">
+        <input type="text" id="task-input" name="task" placeholder="Add a new task…" required>
+        <button type="submit" id="add-btn" class="btn btn-primary">Add</button>
+    </form>
+    <ul id="todo-list" class="todo-list">
+        {% for todo in todos %}
+        <li id="todo-{{ todo['id'] }}" class="todo-item">
+            <span class="task-text {% if todo['completed'] %}completed{% endif %}">{{ todo['task'] }}</span>
+            <div class="actions">
+                {% if not todo['completed'] %}
+                <a href="{{ url_for('complete_task', todo_id=todo['id']) }}" id="complete-{{ todo['id'] }}" class="btn btn-sm btn-complete">✓ Done</a>
+                {% endif %}
+                <a href="{{ url_for('delete_task', todo_id=todo['id']) }}" id="delete-{{ todo['id'] }}" class="btn btn-sm btn-delete">✕ Delete</a>
+            </div>
+        </li>
+        {% else %}
+        <li id="empty-msg" class="empty-state">
+            <div class="icon">📝</div>
+            <p>No tasks yet — add one above!</p>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

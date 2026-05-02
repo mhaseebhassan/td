@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A modern, dark-themed Todo application built with Flask.">
+    <title>{% block title %}Todo App{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── Reset & Base ───────────────────────────────────────── */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 60px 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            color: #6c63ff;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        a:hover {
+            color: #8b84ff;
+        }
+
+        /* ── Container ──────────────────────────────────────────── */
+        .container {
+            width: 100%;
+            max-width: 520px;
+        }
+
+        /* ── Card ───────────────────────────────────────────────── */
+        .card {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 40px 36px;
+            box-shadow:
+                0 4px 24px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.04);
+        }
+
+        .card h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .card .subtitle {
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 32px;
+        }
+
+        /* ── Flash Messages ─────────────────────────────────────── */
+        .flash-messages {
+            margin-bottom: 24px;
+        }
+
+        .flash {
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .flash.error {
+            background: rgba(255, 75, 75, 0.12);
+            border: 1px solid rgba(255, 75, 75, 0.25);
+            color: #ff6b6b;
+        }
+
+        .flash.success {
+            background: rgba(75, 255, 130, 0.10);
+            border: 1px solid rgba(75, 255, 130, 0.22);
+            color: #4bff82;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Form Elements ──────────────────────────────────────── */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #111;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: #555;
+        }
+
+        /* ── Buttons ────────────────────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 13px 24px;
+            border: none;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.25s ease, background 0.25s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: #6c63ff;
+            color: #fff;
+            width: 100%;
+            box-shadow: 0 4px 16px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #5a52e0;
+            box-shadow: 0 6px 24px rgba(108, 99, 255, 0.45);
+        }
+
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 0.78rem;
+            border-radius: 8px;
+        }
+
+        .btn-complete {
+            background: rgba(75, 255, 130, 0.10);
+            color: #4bff82;
+            border: 1px solid rgba(75, 255, 130, 0.2);
+        }
+
+        .btn-complete:hover {
+            background: rgba(75, 255, 130, 0.2);
+            box-shadow: 0 2px 12px rgba(75, 255, 130, 0.15);
+        }
+
+        .btn-delete {
+            background: rgba(255, 75, 75, 0.10);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 75, 75, 0.2);
+        }
+
+        .btn-delete:hover {
+            background: rgba(255, 75, 75, 0.2);
+            box-shadow: 0 2px 12px rgba(255, 75, 75, 0.15);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: #999;
+            border: 1px solid #2a2a2a;
+        }
+
+        .btn-ghost:hover {
+            background: #222;
+            color: #e0e0e0;
+            border-color: #444;
+        }
+
+        /* ── Footer Link ────────────────────────────────────────── */
+        .form-footer {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 0.88rem;
+            color: #666;
+        }
+
+        /* ── Header Bar ─────────────────────────────────────────── */
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .header-bar .greeting {
+            font-size: 0.88rem;
+            color: #888;
+        }
+
+        .header-bar .greeting strong {
+            color: #ccc;
+        }
+
+        /* ── Add Task Row ───────────────────────────────────────── */
+        .add-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .add-row input {
+            flex: 1;
+            padding: 14px 16px;
+            background: #111;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            color: #e0e0e0;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .add-row input:focus {
+            border-color: #6c63ff;
+            box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+        }
+
+        .add-row input::placeholder {
+            color: #555;
+        }
+
+        .add-row .btn-primary {
+            width: auto;
+            padding: 14px 22px;
+            white-space: nowrap;
+        }
+
+        /* ── Todo List ──────────────────────────────────────────── */
+        .todo-list {
+            list-style: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px;
+            background: #151515;
+            border: 1px solid #222;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            transition: border-color 0.2s ease, background 0.2s ease;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .todo-item:hover {
+            border-color: #333;
+            background: #1c1c1c;
+        }
+
+        .todo-item .task-text {
+            flex: 1;
+            font-size: 0.93rem;
+            color: #d0d0d0;
+            margin-right: 12px;
+            word-break: break-word;
+        }
+
+        .todo-item .task-text.completed {
+            text-decoration: line-through;
+            color: #555;
+        }
+
+        .todo-item .actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Empty State ────────────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #555;
+        }
+
+        .empty-state .icon {
+            font-size: 2.4rem;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 0.92rem;
+        }
+
+        /* ── Responsive ─────────────────────────────────────────── */
+        @media (max-width: 480px) {
+            body {
+                padding: 30px 14px;
+            }
+
+            .card {
+                padding: 28px 22px;
+            }
+
+            .add-row {
+                flex-direction: column;
+            }
+
+            .add-row .btn-primary {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
